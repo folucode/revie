@@ -39,7 +39,26 @@ const loginUser = dbInstance => {
   };
 };
 
+const updateProfile = dbInstance => {
+  return (request, response) => {
+    const { name, email, password } = request.body;
+
+    dbInstance.query(
+      'UPDATE users SET name=$1, email=$2, password=$3 WHERE email=$2 RETURNING *',
+      [name, email, password],
+      (error, results) => {
+        if (error) {
+          throw error;
+        }
+
+        response.send(results);
+      }
+    );
+  };
+};
+
 module.exports = {
   registerUser,
   loginUser,
+  updateProfile,
 };
