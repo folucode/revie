@@ -22,6 +22,15 @@ const registerUser = (dbInstance) => (request, response) => {
   );
 };
 
+/**
+ * @method loginUser
+ * @description Method to login a registered user
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+
 const loginUser = (dbInstance) => (request, response) => {
   const { email, password } = request.body;
 
@@ -40,6 +49,15 @@ const loginUser = (dbInstance) => (request, response) => {
     },
   );
 };
+
+/**
+ * @method updateProfile
+ * @description Method to update user profile
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
 
 const updateProfile = (dbInstance) => (request, response) => {
   const { name, email, password } = request.body;
