@@ -1,5 +1,5 @@
 const express = require('express');
-const pool = require('../db/connection');
+const pool = require('../config/db');
 const {
   registerUser,
   loginUser,

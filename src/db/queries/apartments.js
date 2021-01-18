@@ -5,7 +5,7 @@ const getAllApartments = (dbInstance) => (request, response) => {
       if (error) {
         throw error;
       }
-      response.status(200).json(results.rows);
+      return response.status(200).json(results.rows);
     },
   );
 };
