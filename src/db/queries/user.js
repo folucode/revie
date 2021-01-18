@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 /**
  * @method registerUser
  * @description Method to register a new user
@@ -9,9 +11,12 @@
 
 const registerUser = (dbInstance) => (request, response) => {
   const { name, email, password } = request.body;
+
+  const encodedPassword = bcrypt.hashSync(password, 8);
+
   dbInstance.query(
     'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-    [name, email, password],
+    [name, email, encodedPassword],
     (error, results) => {
       if (error) {
         throw error;

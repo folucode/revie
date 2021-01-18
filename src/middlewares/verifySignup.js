@@ -18,7 +18,9 @@ const checkDuplicateUser = (request, response, next) => {
         throw error;
       }
 
-      if (results.rowCount > 0) {
+      const rowsFound = parseInt(results.rows[0].count);
+
+      if (rowsFound > 0) {
         return response.json({
           Error: 'User with Email address already exists',
         });
