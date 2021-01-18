@@ -75,8 +75,27 @@ const updateProfile = (dbInstance) => (request, response) => {
   );
 };
 
+/**
+ * @method getUsers
+ * @description Method to get all user profiles
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+
+const getUsers = (dbInstance) => (request, response) => {
+  dbInstance.query('SELECT * FROM users ORDER BY id ASC', (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).json(results.rows);
+  });
+};
+
 module.exports = {
   registerUser,
   loginUser,
   updateProfile,
+  getUsers,
 };
