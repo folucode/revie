@@ -7,11 +7,21 @@
     "start": "nodemon src/index.js",
     "lint": "eslint"
   },
-  "keywords": [],
+  "keywords": [
+    "node js",
+    "jwt",
+    "authentication",
+    "express",
+    "postgresql"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
     "pg": "^8.5.1"
   },
   "devDependencies": {
