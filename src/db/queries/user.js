@@ -1,4 +1,6 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../../config/auth');
 
 /**
  * @method registerUser
@@ -8,7 +10,6 @@ const bcrypt = require('bcryptjs');
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-
 const registerUser = (dbInstance) => (request, response) => {
   const { name, email, password } = request.body;
 
@@ -35,22 +36,39 @@ const registerUser = (dbInstance) => (request, response) => {
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-
 const loginUser = (dbInstance) => (request, response) => {
   const { email, password } = request.body;
 
   dbInstance.query(
-    'SELECT name, email FROM users WHERE email=$1 AND password=$2',
-    [email, password],
+    'SELECT id, name, password FROM users WHERE email=$1',
+    [email],
     (error, results) => {
       if (error) {
         throw error;
       }
 
-      if (results.rows.length < 1) {
-        return response.status(404).send({ Error: 'User not found' });
+      const validPassword = bcrypt.compareSync(
+        password,
+        results.rows[0].password,
+      );
+
+      if (!validPassword) {
+        return response.status(401).send({
+          accessToken: null,
+          message: 'Invalid Password!',
+        });
       }
-      return response.status(200).send({ results });
+
+      const token = jwt.sign({ id: results.rows[0].id }, config.secret, {
+        expiresIn: 86400, // 24 hours
+      });
+
+      return response.status(200).send({
+        id: results.rows[0].id,
+        username: results.rows[0].name,
+        email,
+        accessToken: token,
+      });
     },
   );
 };

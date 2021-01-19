@@ -1,23 +1,26 @@
 const jwt = require('jsonwebtoken');
-const db = require('../config/db');
 const config = require('../config/auth');
 
+/**
+ * @param {*} request
+ * @param {*} response
+ * @param {*} next
+ */
 const verifyToken = (request, response, next) => {
   const token = request.headers['x-access-token'];
 
   if (!token) {
-    return response.status(403).send({
+    response.status(403).send({
       message: 'No token provided!',
     });
   }
 
   jwt.verify(token, config.secret, (error, decoded) => {
     if (error) {
-      return response.status(401).send({
+      response.status(401).send({
         message: 'Unauthorized!',
       });
     }
-
     request.userId = decoded.id;
     next();
   });
