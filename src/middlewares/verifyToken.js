@@ -7,7 +7,7 @@ const config = require('../config/auth');
  * @param {*} next
  */
 const verifyToken = (request, response, next) => {
-  const token = request.headers['x-access-token'];
+  const token = request.header('Authorization').replace('Bearer ', '');
 
   if (!token) {
     response.status(403).send({

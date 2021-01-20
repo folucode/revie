@@ -73,7 +73,7 @@ const loginUser = (dbInstance) => (request, response) => {
         id: results.rows[0].id,
         username: results.rows[0].name,
         email,
-        accessToken: token,
+        token,
       });
     },
   );
