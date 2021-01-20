@@ -23,7 +23,13 @@ const registerUser = (dbInstance) => (request, response) => {
         throw error;
       }
       const { rows } = results;
-      response.status(201).send(rows[0]);
+      const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
+
+      response.status(201).send({
+        message: 'User successfully registered',
+        user: rows[0],
+        token,
+      });
     },
   );
 };
