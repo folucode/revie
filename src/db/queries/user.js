@@ -89,11 +89,11 @@ const loginUser = (dbInstance) => (request, response) => {
  */
 
 const updateProfile = (dbInstance) => (request, response) => {
-  const { name, email, password } = request.body;
+  const { userId, body } = request;
 
   dbInstance.query(
-    'UPDATE users SET name=$1, email=$2, password=$3 WHERE email=$2 RETURNING *',
-    [name, email, password],
+    'UPDATE users SET name=$2, email=$3, password=$4 WHERE id=$1 RETURNING *',
+    [userId, ...Object.values(body)],
     (error, results) => {
       if (error) {
         throw error;

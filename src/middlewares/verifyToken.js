@@ -18,7 +18,7 @@ const verifyToken = (request, response, next) => {
   jwt.verify(token, config.secret, (error, decoded) => {
     if (error) {
       response.status(401).send({
-        message: 'Unauthorized!',
+        message: error,
       });
     }
     request.userId = decoded.id;
