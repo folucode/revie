@@ -60,7 +60,7 @@ const loginUser = (dbInstance) => (request, response) => {
 
       if (!validPassword) {
         return response.status(401).send({
-          accessToken: null,
+          token: null,
           message: 'Invalid Password!',
         });
       }
@@ -122,9 +122,19 @@ const getUsers = (dbInstance) => (request, response) => {
   });
 };
 
+const logout = (request, response) => {
+  jwt.verify(request.token, config.secret, { maxAge: 0 }, (err, decoded) => {
+    if (err) {
+      response.status(401).send({ message: err });
+    }
+    response.send({ message: 'logout successful', token: request.token });
+  });
+};
+
 module.exports = {
   registerUser,
   loginUser,
   updateProfile,
   getUsers,
+  logout,
 };

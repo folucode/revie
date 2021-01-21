@@ -22,6 +22,7 @@ const verifyToken = (request, response, next) => {
       });
     }
     request.userId = decoded.id;
+    request.token = token;
     next();
   });
 };
