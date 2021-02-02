@@ -20,7 +20,11 @@ app.use(
   }),
 );
 
+const tokenBlacklist = {
+  'test@example.com': ['token1', 'token2', 'toekn3'],
+};
+
 app.use(user);
 app.use(apartment);
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => console.log(`Example app listening on port ${port}! ${tokenBlacklist['test@example.com'][0]}`));
