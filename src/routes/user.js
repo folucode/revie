@@ -35,11 +35,11 @@ router.post('/logout', verifyToken, (request, response) => {
       return;
     }
 
-    const blaclistData = {
+    const blacklistData = {
       [userId]: [token],
     };
 
-    redisClient.setex(userId, 3600, JSON.stringify(blaclistData));
+    redisClient.setex(userId, 3600, JSON.stringify(blacklistData));
   });
 });
 
