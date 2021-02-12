@@ -6,6 +6,7 @@ const {
   loginUser,
   updateProfile,
   getUsers,
+  getUserProfile,
 } = require('../db/queries/user');
 const { checkDuplicateUser } = require('../middlewares/verifySignup');
 const { verifyToken } = require('../middlewares/verifyToken');
@@ -17,8 +18,6 @@ router.get('/', getUsers(pool));
 router.post('/register', checkDuplicateUser, registerUser(pool));
 
 router.post('/login', loginUser(pool));
-
-router.post('/account/update', verifyToken, updateProfile(pool));
 
 router.post('/logout', verifyToken, (request, response) => {
   const { userId, token } = request;
@@ -42,5 +41,9 @@ router.post('/logout', verifyToken, (request, response) => {
     redisClient.setex(userId, 3600, JSON.stringify(blacklistData));
   });
 });
+
+router.post('/account/update', verifyToken, updateProfile(pool));
+
+router.get('/me', verifyToken, getUserProfile(pool));
 
 module.exports = router;

@@ -105,6 +105,29 @@ const updateProfile = (dbInstance) => (request, response) => {
 };
 
 /**
+ * @method getUserProfile
+ * @description Method to get user profile
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const getUserProfile = (dbInstance) => (request, response) => {
+  const { userId } = request;
+
+  dbInstance.query(
+    'SELECT * FROM users WHERE id=$1',
+    [userId],
+    (error, results) => {
+      if (error) {
+        throw error;
+      }
+      response.send(results.rows[0]);
+    },
+  );
+};
+
+/**
  * @method getUsers
  * @description Method to get all user profiles
  * @param {object} dbInstance - The database instance
@@ -127,4 +150,5 @@ module.exports = {
   loginUser,
   updateProfile,
   getUsers,
+  getUserProfile,
 };
