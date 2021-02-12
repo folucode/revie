@@ -8,30 +8,50 @@ const config = require('../../config/auth');
  * @param {object} dbInstance - The database instance
  * @param {object} request - The request object
  * @param {object} response - The response object
- * @returns {object} - Response object
+ * @returns {object} - Response object| Error object
  */
 const registerUser = (dbInstance) => (request, response) => {
   const { name, email, password } = request.body;
 
   const encodedPassword = bcrypt.hashSync(password, 8);
 
-  dbInstance.query(
-    'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-    [name, email, encodedPassword],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      const { rows } = results;
-      const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
+  try {
+    dbInstance.query(
+      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
+      [name, email, encodedPassword],
+      (error, results) => {
+        if (error) {
+          const { message, stack, code } = error;
 
-      response.status(201).send({
-        message: 'User successfully registered',
-        user: rows[0],
-        token,
-      });
-    },
-  );
+          return response.status(501).send({
+            status: 'error',
+            message,
+            code,
+            data: stack,
+          });
+        }
+        const { rows } = results;
+        const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
+
+        return response.status(201).send({
+          message: 'User successfully registered',
+          data: {
+            user: rows[0],
+            token,
+          },
+        });
+      },
+    );
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
 };
 
 /**
@@ -45,38 +65,57 @@ const registerUser = (dbInstance) => (request, response) => {
 const loginUser = (dbInstance) => (request, response) => {
   const { email, password } = request.body;
 
-  dbInstance.query(
-    'SELECT id, name, password FROM users WHERE email=$1',
-    [email],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
+  try {
+    dbInstance.query(
+      'SELECT id, name, password FROM users WHERE email=$1',
+      [email],
+      (error, results) => {
+        if (error) {
+          const { message, stack, code } = error;
 
-      const validPassword = bcrypt.compareSync(
-        password,
-        results.rows[0].password,
-      );
+          return response.status(501).send({
+            status: 'error',
+            message,
+            code,
+            data: stack,
+          });
+        }
 
-      if (!validPassword) {
-        return response.status(401).send({
-          token: null,
-          message: 'Invalid Password!',
+        const validPassword = bcrypt.compareSync(
+          password,
+          results.rows[0].password,
+        );
+
+        if (!validPassword) {
+          return response.status(401).send({
+            status: 'fail',
+            data: { password: 'Invalid Password!' },
+          });
+        }
+
+        const token = jwt.sign({ id: results.rows[0].id }, config.secret, {
+          expiresIn: 86400, // 24 hours
         });
-      }
 
-      const token = jwt.sign({ id: results.rows[0].id }, config.secret, {
-        expiresIn: 86400, // 24 hours
-      });
+        return response.status(200).send({
+          message: 'Login Successful',
+          data: {
+            user: results.rows[0],
+            token,
+          },
+        });
+      },
+    );
+  } catch (error) {
+    const { message, stack, code } = error;
 
-      return response.status(200).send({
-        id: results.rows[0].id,
-        username: results.rows[0].name,
-        email,
-        token,
-      });
-    },
-  );
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
 };
 
 /**
@@ -91,17 +130,38 @@ const loginUser = (dbInstance) => (request, response) => {
 const updateProfile = (dbInstance) => (request, response) => {
   const { userId, body } = request;
 
-  dbInstance.query(
-    'UPDATE users SET name=$2, email=$3, password=$4 WHERE id=$1 RETURNING *',
-    [userId, ...Object.values(body)],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
+  try {
+    dbInstance.query(
+      'UPDATE users SET name=$2, email=$3, password=$4 WHERE id=$1 RETURNING *',
+      [userId, ...Object.values(body)],
+      (error, results) => {
+        if (error) {
+          const { message, stack, code } = error;
 
-      response.send(results);
-    },
-  );
+          return response.status(400).send({
+            status: 'error',
+            message,
+            code,
+            data: stack,
+          });
+        }
+
+        return response.send({
+          message: 'Profile Successfully Updated',
+          data: results.rows[0],
+        });
+      },
+    );
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
 };
 
 /**
@@ -115,16 +175,37 @@ const updateProfile = (dbInstance) => (request, response) => {
 const getUserProfile = (dbInstance) => (request, response) => {
   const { userId } = request;
 
-  dbInstance.query(
-    'SELECT * FROM users WHERE id=$1',
-    [userId],
-    (error, results) => {
-      if (error) {
-        throw error;
-      }
-      response.send(results.rows[0]);
-    },
-  );
+  try {
+    dbInstance.query(
+      'SELECT * FROM users WHERE id=$1',
+      [userId],
+      (error, results) => {
+        if (error) {
+          const { message, stack, code } = error;
+
+          return response.status(400).send({
+            status: 'error',
+            message,
+            code,
+            data: stack,
+          });
+        }
+        return response.send({
+          message: 'User Profile',
+          data: results.rows[0],
+        });
+      },
+    );
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
 };
 
 /**
