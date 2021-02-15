@@ -10,6 +10,7 @@
   },
   "rules": {
     "linebreak-style": ["error", "windows"],
-    "consistent-return": ["error", { "treatUndefinedAsUnspecified": true }]
+    "consistent-return": ["error", { "treatUndefinedAsUnspecified": true }],
+    "radix": ["error", "always"]
   }
 }

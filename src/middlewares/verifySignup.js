@@ -18,15 +18,16 @@ const checkDuplicateUser = (request, response, next) => {
         throw error;
       }
 
-      const rowsFound = parseInt(results.rows[0].count);
+      const rowsFound = parseInt(results.rows[0].count, 10);
 
       if (rowsFound > 0) {
         return response.json({
-          Error: 'User with Email address already exists',
+          status: 'error',
+          message: 'User with Email address already exists',
         });
       }
 
-      next();
+      return next();
     },
   );
 };
