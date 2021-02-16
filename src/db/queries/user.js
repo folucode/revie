@@ -1,6 +1,12 @@
 const bcrypt = require('bcryptjs');
+const Joi = require('joi');
 const jwt = require('jsonwebtoken');
 const config = require('../../config/auth');
+
+const loginSchema = Joi.object({
+  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
+  password: Joi.string(),
+});
 
 /**
  * @method registerUser
@@ -66,6 +72,16 @@ const loginUser = (dbInstance) => (request, response) => {
   const { email, password } = request.body;
 
   try {
+    const errorObject = loginSchema.validate(request.body).error;
+
+    if (errorObject) {
+      return response.status(422).json({
+        status: 'error',
+        message: errorObject.message,
+        data: request.body,
+      });
+    }
+
     dbInstance.query(
       'SELECT id, name, password FROM users WHERE email=$1',
       [email],
@@ -78,6 +94,14 @@ const loginUser = (dbInstance) => (request, response) => {
             message,
             code,
             data: stack,
+          });
+        }
+
+        if (results.rowCount < 1) {
+          return response.status(501).send({
+            status: 'error',
+            message: 'Invalid user credentials',
+            data: request.body,
           });
         }
 
