@@ -97,10 +97,14 @@ const loginUser = (dbInstance) => (request, response) => {
           expiresIn: 86400, // 24 hours
         });
 
+        const { id, name } = results.rows[0];
+
         return response.status(200).send({
           message: 'Login Successful',
           data: {
-            user: results.rows[0],
+            user: {
+              id, name, email,
+            },
             token,
           },
         });
