@@ -22,7 +22,7 @@ const registerSchema = Joi.object({
  * @param {object} response - The response object
  * @returns {object} - Response object| Error object
  */
-const registerUser = (dbInstance) => (request, response) => {
+const registerUser = (dbInstance) => async (request, response) => {
   const { name, email, password } = request.body;
 
   const encodedPassword = bcrypt.hashSync(password, 8);
@@ -38,32 +38,28 @@ const registerUser = (dbInstance) => (request, response) => {
       });
     }
 
-    dbInstance.query(
+    const result = await dbInstance.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [name, email, encodedPassword],
-      (error, results) => {
-        if (error) {
-          const { message, stack, code } = error;
-
-          return response.status(501).send({
-            status: 'error',
-            message,
-            code,
-            data: stack,
-          });
-        }
-        const { rows } = results;
-        const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
-
-        return response.status(201).send({
-          message: 'User successfully registered',
-          data: {
-            user: rows[0],
-            token,
-          },
-        });
-      },
     );
+
+    if (result.rows < 1) {
+      return response.status(400).send({
+        status: 'error',
+        message: 'Registration failed',
+      });
+    }
+
+    const { rows } = result;
+    const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
+
+    return response.status(201).send({
+      message: 'User successfully registered',
+      data: {
+        user: rows[0],
+        token,
+      },
+    });
   } catch (error) {
     const { message, stack, code } = error;
 
@@ -84,7 +80,7 @@ const registerUser = (dbInstance) => (request, response) => {
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-const loginUser = (dbInstance) => (request, response) => {
+const loginUser = (dbInstance) => async (request, response) => {
   const { email, password } = request.body;
 
   try {
@@ -98,58 +94,46 @@ const loginUser = (dbInstance) => (request, response) => {
       });
     }
 
-    dbInstance.query(
+    const result = await dbInstance.query(
       'SELECT id, name, password FROM users WHERE email=$1',
       [email],
-      (error, results) => {
-        if (error) {
-          const { message, stack, code } = error;
-
-          return response.status(501).send({
-            status: 'error',
-            message,
-            code,
-            data: stack,
-          });
-        }
-
-        if (results.rowCount < 1) {
-          return response.status(501).send({
-            status: 'error',
-            message: 'Invalid user credentials',
-            data: request.body,
-          });
-        }
-
-        const validPassword = bcrypt.compareSync(
-          password,
-          results.rows[0].password,
-        );
-
-        if (!validPassword) {
-          return response.status(401).send({
-            status: 'fail',
-            data: { password: 'Invalid Password!' },
-          });
-        }
-
-        const token = jwt.sign({ id: results.rows[0].id }, config.secret, {
-          expiresIn: 86400, // 24 hours
-        });
-
-        const { id, name } = results.rows[0];
-
-        return response.status(200).send({
-          message: 'Login Successful',
-          data: {
-            user: {
-              id, name, email,
-            },
-            token,
-          },
-        });
-      },
     );
+
+    if (result.rowCount < 1) {
+      return response.status(501).send({
+        status: 'error',
+        message: 'Invalid login credentials',
+        data: request.body,
+      });
+    }
+
+    const validPassword = bcrypt.compareSync(
+      password,
+      result.rows[0].password,
+    );
+
+    if (!validPassword) {
+      return response.status(401).send({
+        status: 'fail',
+        data: { password: 'Invalid Password!' },
+      });
+    }
+
+    const token = jwt.sign({ id: result.rows[0].id }, config.secret, {
+      expiresIn: 86400, // 24 hours
+    });
+
+    const { id, name } = result.rows[0];
+
+    return response.status(200).send({
+      message: 'Login Successful',
+      data: {
+        user: {
+          id, name, email,
+        },
+        token,
+      },
+    });
   } catch (error) {
     const { message, stack, code } = error;
 
@@ -171,7 +155,7 @@ const loginUser = (dbInstance) => (request, response) => {
  * @returns {object} - Response object
  */
 
-const updateProfile = (dbInstance) => (request, response) => {
+const updateProfile = (dbInstance) => async (request, response) => {
   const { userId, body } = request;
 
   try {
@@ -185,27 +169,19 @@ const updateProfile = (dbInstance) => (request, response) => {
       });
     }
 
-    dbInstance.query(
+    const { name, email, password } = Object.values(body);
+
+    const encodedPassword = bcrypt.hashSync(password, 8);
+
+    const result = await dbInstance.query(
       'UPDATE users SET name=$2, email=$3, password=$4 WHERE id=$1 RETURNING *',
-      [userId, ...Object.values(body)],
-      (error, results) => {
-        if (error) {
-          const { message, stack, code } = error;
-
-          return response.status(400).send({
-            status: 'error',
-            message,
-            code,
-            data: stack,
-          });
-        }
-
-        return response.send({
-          message: 'Profile Successfully Updated',
-          data: results.rows[0],
-        });
-      },
+      [userId, name, email, encodedPassword],
     );
+
+    return response.send({
+      message: 'Profile Successfully Updated',
+      data: result.rows[0],
+    });
   } catch (error) {
     const { message, stack, code } = error;
 
@@ -226,30 +202,19 @@ const updateProfile = (dbInstance) => (request, response) => {
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-const getUserProfile = (dbInstance) => (request, response) => {
+const getUserProfile = (dbInstance) => async (request, response) => {
   const { userId } = request;
 
   try {
-    dbInstance.query(
+    const result = await dbInstance.query(
       'SELECT * FROM users WHERE id=$1',
       [userId],
-      (error, results) => {
-        if (error) {
-          const { message, stack, code } = error;
-
-          return response.status(400).send({
-            status: 'error',
-            message,
-            code,
-            data: stack,
-          });
-        }
-        return response.send({
-          message: 'User Profile',
-          data: results.rows[0],
-        });
-      },
     );
+
+    return response.send({
+      message: 'User Profile',
+      data: result.rows[0],
+    });
   } catch (error) {
     const { message, stack, code } = error;
 

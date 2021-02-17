@@ -14,28 +14,23 @@ const addApartmentSchema = Joi.object({
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-const getAllApartments = (dbInstance) => (request, response) => {
+const getAllApartments = (dbInstance) => async (request, response) => {
   try {
-    dbInstance.query(
+    const result = await dbInstance.query(
       'SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id ORDER BY id ASC',
-      (error, results) => {
-        if (error) {
-          const { message, stack, code } = error;
-
-          return response.status(400).send({
-            status: 'error',
-            message,
-            code,
-            data: stack,
-          });
-        }
-
-        return response.status(200).json({
-          message: 'Success',
-          data: results.rows,
-        });
-      },
     );
+
+    if (result.rows < 1) {
+      return response.status(402).json({
+        status: 'error',
+        message: 'There are no apartments yet.',
+      });
+    }
+
+    return response.status(200).json({
+      message: 'Success',
+      data: result.rows,
+    });
   } catch (error) {
     if (error) {
       const { message, stack, code } = error;
@@ -97,7 +92,7 @@ const getApartment = (dbInstance) => async (request, response) => {
  * @param {object} response - The response object
  * @returns {object} - Response object
  */
-const addNewApartment = (dbInstance) => (request, response) => {
+const addNewApartment = (dbInstance) => async (request, response) => {
   const {
     type, address, state,
   } = request.body;
@@ -113,22 +108,18 @@ const addNewApartment = (dbInstance) => (request, response) => {
       });
     }
 
-    dbInstance.query('INSERT INTO apartments (owner_id, type, address, state) VALUES ($1, $2, $3, $4) RETURNING * ', [request.userId, type, address, state], (error, results) => {
-      if (error) {
-        const { message, stack, code } = error;
+    const result = await dbInstance.query('INSERT INTO apartments (owner_id, type, address, state) VALUES ($1, $2, $3, $4) RETURNING * ', [request.userId, type, address, state]);
 
-        return response.status(400).send({
-          status: 'error',
-          message,
-          code,
-          data: stack,
-        });
-      }
-
-      return response.send({
-        message: 'success',
-        data: results.rows[0],
+    if (result.rows < 1) {
+      return response.status(400).send({
+        status: 'error',
+        message: "Couldn't add apartment",
       });
+    }
+
+    return response.send({
+      message: 'success',
+      data: result.rows[0],
     });
   } catch (error) {
     const { message, stack, code } = error;
