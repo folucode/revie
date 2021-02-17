@@ -142,8 +142,59 @@ const addNewApartment = (dbInstance) => (request, response) => {
   }
 };
 
+/**
+ * @method updateApartment
+ * @description Method to update the parameters of a particular apartment
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const updateApartment = (dbInstance) => async (request, response) => {
+  const {
+    type, address, state,
+  } = request.body;
+
+  try {
+    const errorObject = addApartmentSchema.validate(request.body).error;
+
+    if (errorObject) {
+      return response.status(422).json({
+        status: 'error',
+        message: errorObject.message,
+        data: request.body,
+      });
+    }
+
+    const result = await dbInstance.query('UPDATE apartments SET type=$2, address=$3, state=$4 WHERE id=$1 AND owner_id=$5 RETURNING *', [request.params.id, type, address, state, request.userId]);
+
+    if (result.rows < 1) {
+      return response.status(400).send({
+        status: 'error',
+        message: "Couldn't perform update",
+      });
+    }
+
+    return response.send({
+      status: 'success',
+      message: 'Successfully updated apartment',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
+};
+
 module.exports = {
   getAllApartments,
   addNewApartment,
   getApartment,
+  updateApartment,
 };
