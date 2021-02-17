@@ -175,6 +175,16 @@ const updateProfile = (dbInstance) => (request, response) => {
   const { userId, body } = request;
 
   try {
+    const errorObject = registerSchema.validate(request.body).error;
+
+    if (errorObject) {
+      return response.status(422).json({
+        status: 'error',
+        message: errorObject.message,
+        data: request.body,
+      });
+    }
+
     dbInstance.query(
       'UPDATE users SET name=$2, email=$3, password=$4 WHERE id=$1 RETURNING *',
       [userId, ...Object.values(body)],
