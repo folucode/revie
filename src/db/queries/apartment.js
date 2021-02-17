@@ -192,9 +192,48 @@ const updateApartment = (dbInstance) => async (request, response) => {
   }
 };
 
+/**
+ * @method deleteApartment
+ * @description Method to delete a particular apartment
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const deleteApartment = (dbInstance) => async (request, response) => {
+  const { params, userId } = request;
+
+  try {
+    const result = await dbInstance.query('DELETE FROM apartments WHERE id=$1 AND owner_id=$2 RETURNING *', [params.id, userId]);
+
+    if (result.rows < 1) {
+      return response.status(400).send({
+        status: 'error',
+        message: "Couldn't perform delete operation",
+      });
+    }
+
+    return response.send({
+      status: 'success',
+      message: 'Successfully deleted apartment',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
+};
+
 module.exports = {
   getAllApartments,
   addNewApartment,
   getApartment,
   updateApartment,
+  deleteApartment,
 };
