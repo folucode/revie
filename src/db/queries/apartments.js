@@ -1,3 +1,11 @@
+const Joi = require('joi');
+
+const addApartmentSchema = Joi.object({
+  type: Joi.string().required().empty(),
+  address: Joi.string().required().empty(),
+  state: Joi.string().required().empty(),
+});
+
 /**
  * @method getAllApartments
  * @description Method to get all apartments
@@ -9,7 +17,7 @@
 const getAllApartments = (dbInstance) => (request, response) => {
   try {
     dbInstance.query(
-      'SELECT apartments.id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id ORDER BY id ASC',
+      'SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id ORDER BY id ASC',
       (error, results) => {
         if (error) {
           const { message, stack, code } = error;
@@ -56,6 +64,16 @@ const addNewApartment = (dbInstance) => (request, response) => {
   } = request.body;
 
   try {
+    const errorObject = addApartmentSchema.validate(request.body).error;
+
+    if (errorObject) {
+      return response.status(422).json({
+        status: 'error',
+        message: errorObject.message,
+        data: request.body,
+      });
+    }
+
     dbInstance.query('INSERT INTO apartments (owner_id, type, address, state) VALUES ($1, $2, $3, $4) RETURNING * ', [request.userId, type, address, state], (error, results) => {
       if (error) {
         const { message, stack, code } = error;
