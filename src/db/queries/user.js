@@ -207,7 +207,7 @@ const getUserProfile = (dbInstance) => async (request, response) => {
 
   try {
     const result = await dbInstance.query(
-      'SELECT * FROM users WHERE id=$1',
+      'SELECT id, name, email FROM users WHERE id=$1',
       [userId],
     );
 
