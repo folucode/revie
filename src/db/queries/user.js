@@ -8,6 +8,12 @@ const loginSchema = Joi.object({
   password: Joi.string().required(),
 });
 
+const registerSchema = Joi.object({
+  name: Joi.string().required().empty(),
+  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required().empty(),
+  password: Joi.string().required().empty(),
+});
+
 /**
  * @method registerUser
  * @description Method to register a new user
@@ -22,6 +28,16 @@ const registerUser = (dbInstance) => (request, response) => {
   const encodedPassword = bcrypt.hashSync(password, 8);
 
   try {
+    const errorObject = registerSchema.validate(request.body).error;
+
+    if (errorObject) {
+      return response.status(422).json({
+        status: 'error',
+        message: errorObject.message,
+        data: request.body,
+      });
+    }
+
     dbInstance.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [name, email, encodedPassword],
