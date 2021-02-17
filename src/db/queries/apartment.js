@@ -133,6 +133,35 @@ const addNewApartment = (dbInstance) => async (request, response) => {
   }
 };
 
+const getMyApartments = (dbInstance) => async (request, response) => {
+  const { userId } = request;
+  try {
+    const result = await dbInstance.query('SELECT * FROM apartments WHERE owner_id=$1', [userId]);
+
+    if (result.rows < 1) {
+      return response.status(400).send({
+        status: 'error',
+        message: 'You have no apartments',
+      });
+    }
+
+    return response.send({
+      status: 'Success',
+      message: 'Apartments fetched successfully',
+      data: result.rows,
+    });
+  } catch (error) {
+    const { message, stack, code } = error;
+
+    return response.status(400).send({
+      status: 'error',
+      message,
+      code,
+      data: stack,
+    });
+  }
+};
+
 /**
  * @method updateApartment
  * @description Method to update the parameters of a particular apartment
@@ -227,4 +256,5 @@ module.exports = {
   getApartment,
   updateApartment,
   deleteApartment,
+  getMyApartments,
 };

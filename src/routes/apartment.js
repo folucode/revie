@@ -1,7 +1,12 @@
 const express = require('express');
 const pool = require('../config/db');
 const {
-  getAllApartments, addNewApartment, getApartment, updateApartment, deleteApartment,
+  getAllApartments,
+  addNewApartment,
+  getApartment,
+  updateApartment,
+  deleteApartment,
+  getMyApartments,
 } = require('../db/queries/apartment');
 const { verifyToken } = require('../middlewares/verifyToken');
 
@@ -11,7 +16,9 @@ router.post('/apartments/new', verifyToken, addNewApartment(pool));
 
 router.get('/apartments', verifyToken, getAllApartments(pool));
 
-router.get('/apartments/:id', verifyToken, getApartment(pool));
+router.get('/apartments/:id([0-9]{1,10})', verifyToken, getApartment(pool));
+
+router.get('/apartments/me', verifyToken, getMyApartments(pool));
 
 router.patch('/apartments/:id/update', verifyToken, updateApartment(pool));
 
