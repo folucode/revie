@@ -8,7 +8,7 @@ const {
   getUsers,
   getUserProfile,
 } = require('../db/queries/user');
-const { checkDuplicateUser } = require('../middlewares/verifySignup');
+const { checkDuplicateUser } = require('../middlewares/checkDuplicateUser');
 const { verifyToken } = require('../middlewares/verifyToken');
 
 const router = new express.Router();
