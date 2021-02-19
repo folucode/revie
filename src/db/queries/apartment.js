@@ -21,8 +21,8 @@ const getAllApartments = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(402).json({
-        status: 'error',
+      return response.status(204).json({
+        status: 'success',
         message: 'There are no apartments yet.',
       });
     }
@@ -35,7 +35,7 @@ const getAllApartments = (dbInstance) => async (request, response) => {
     if (error) {
       const { message, stack, code } = error;
 
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message,
         code,
@@ -57,7 +57,10 @@ const getApartment = (dbInstance) => async (request, response) => {
   const { params } = request;
 
   try {
-    const result = await dbInstance.query('SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id WHERE apartments.id=$1', [params.id]);
+    const result = await dbInstance.query(
+      'SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id WHERE apartments.id=$1',
+      [params.id],
+    );
 
     if (result.rows < 1) {
       return response.status(404).send({
@@ -74,7 +77,7 @@ const getApartment = (dbInstance) => async (request, response) => {
     if (error) {
       const { message, stack, code } = error;
 
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message,
         code,
@@ -93,9 +96,7 @@ const getApartment = (dbInstance) => async (request, response) => {
  * @returns {object} - Response object
  */
 const addNewApartment = (dbInstance) => async (request, response) => {
-  const {
-    type, address, state,
-  } = request.body;
+  const { type, address, state } = request.body;
 
   try {
     const errorObject = addApartmentSchema.validate(request.body).error;
@@ -108,10 +109,13 @@ const addNewApartment = (dbInstance) => async (request, response) => {
       });
     }
 
-    const result = await dbInstance.query('INSERT INTO apartments (owner_id, type, address, state) VALUES ($1, $2, $3, $4) RETURNING * ', [request.userId, type, address, state]);
+    const result = await dbInstance.query(
+      'INSERT INTO apartments (owner_id, type, address, state) VALUES ($1, $2, $3, $4) RETURNING * ',
+      [request.userId, type, address, state],
+    );
 
     if (result.rows < 1) {
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message: "Couldn't add apartment",
       });
@@ -124,7 +128,7 @@ const addNewApartment = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -136,11 +140,14 @@ const addNewApartment = (dbInstance) => async (request, response) => {
 const getMyApartments = (dbInstance) => async (request, response) => {
   const { userId } = request;
   try {
-    const result = await dbInstance.query('SELECT * FROM apartments WHERE owner_id=$1', [userId]);
+    const result = await dbInstance.query(
+      'SELECT * FROM apartments WHERE owner_id=$1',
+      [userId],
+    );
 
     if (result.rows < 1) {
-      return response.status(400).send({
-        status: 'error',
+      return response.status(204).send({
+        status: 'success',
         message: 'You have no apartments',
       });
     }
@@ -153,7 +160,7 @@ const getMyApartments = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -171,9 +178,7 @@ const getMyApartments = (dbInstance) => async (request, response) => {
  * @returns {object} - Response object
  */
 const updateApartment = (dbInstance) => async (request, response) => {
-  const {
-    type, address, state,
-  } = request.body;
+  const { type, address, state } = request.body;
 
   try {
     const errorObject = addApartmentSchema.validate(request.body).error;
@@ -186,10 +191,13 @@ const updateApartment = (dbInstance) => async (request, response) => {
       });
     }
 
-    const result = await dbInstance.query('UPDATE apartments SET type=$2, address=$3, state=$4 WHERE id=$1 AND owner_id=$5 RETURNING *', [request.params.id, type, address, state, request.userId]);
+    const result = await dbInstance.query(
+      'UPDATE apartments SET type=$2, address=$3, state=$4 WHERE id=$1 AND owner_id=$5 RETURNING *',
+      [request.params.id, type, address, state, request.userId],
+    );
 
     if (result.rows < 1) {
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message: "Couldn't perform update",
       });
@@ -203,7 +211,7 @@ const updateApartment = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -224,10 +232,13 @@ const deleteApartment = (dbInstance) => async (request, response) => {
   const { params, userId } = request;
 
   try {
-    const result = await dbInstance.query('DELETE FROM apartments WHERE id=$1 AND owner_id=$2 RETURNING *', [params.id, userId]);
+    const result = await dbInstance.query(
+      'DELETE FROM apartments WHERE id=$1 AND owner_id=$2 RETURNING *',
+      [params.id, userId],
+    );
 
     if (result.rows < 1) {
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message: "Couldn't perform delete operation",
       });
@@ -241,7 +252,7 @@ const deleteApartment = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
