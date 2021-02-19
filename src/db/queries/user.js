@@ -4,13 +4,18 @@ const jwt = require('jsonwebtoken');
 const config = require('../../config/auth');
 
 const loginSchema = Joi.object({
-  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
+  email: Joi.string()
+    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+    .required(),
   password: Joi.string().required(),
 });
 
 const registerSchema = Joi.object({
   name: Joi.string().required().empty(),
-  email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required().empty(),
+  email: Joi.string()
+    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } })
+    .required()
+    .empty(),
   password: Joi.string().required().empty(),
 });
 
@@ -44,7 +49,7 @@ const registerUser = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(400).send({
+      return response.status(500).send({
         status: 'error',
         message: 'Registration failed',
       });
@@ -63,7 +68,7 @@ const registerUser = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -100,17 +105,14 @@ const loginUser = (dbInstance) => async (request, response) => {
     );
 
     if (result.rowCount < 1) {
-      return response.status(501).send({
+      return response.status(401).send({
         status: 'error',
         message: 'Invalid login credentials',
         data: request.body,
       });
     }
 
-    const validPassword = bcrypt.compareSync(
-      password,
-      result.rows[0].password,
-    );
+    const validPassword = bcrypt.compareSync(password, result.rows[0].password);
 
     if (!validPassword) {
       return response.status(401).send({
@@ -129,7 +131,9 @@ const loginUser = (dbInstance) => async (request, response) => {
       message: 'Login Successful',
       data: {
         user: {
-          id, name, email,
+          id,
+          name,
+          email,
         },
         token,
       },
@@ -137,7 +141,7 @@ const loginUser = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -185,7 +189,7 @@ const updateProfile = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
@@ -218,7 +222,7 @@ const getUserProfile = (dbInstance) => async (request, response) => {
   } catch (error) {
     const { message, stack, code } = error;
 
-    return response.status(400).send({
+    return response.status(500).send({
       status: 'error',
       message,
       code,
