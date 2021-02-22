@@ -18,7 +18,8 @@ const verifyToken = (request, response, next) => {
   jwt.verify(token, config.secret, (error, decoded) => {
     if (error) {
       response.status(401).send({
-        message: error,
+        status: 'error',
+        message: error.message,
       });
     }
     request.userId = decoded.id;
