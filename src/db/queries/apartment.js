@@ -261,6 +261,37 @@ const deleteApartment = (dbInstance) => async (request, response) => {
   }
 };
 
+const getApartmentsByLocation = (dbInstance) => async (request, response) => {
+  try {
+    const result = await dbInstance.query(
+      `SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id WHERE apartments.address LIKE '%${request.params.location}%' ORDER BY id ASC`,
+    );
+
+    if (result.rows < 1) {
+      return response.status(204).json({
+        status: 'success',
+        message: 'There are no apartments yet.',
+      });
+    }
+
+    return response.status(200).json({
+      message: 'Success',
+      data: result.rows,
+    });
+  } catch (error) {
+    if (error) {
+      const { message, stack, code } = error;
+
+      return response.status(500).send({
+        status: 'error',
+        message,
+        code,
+        data: stack,
+      });
+    }
+  }
+};
+
 module.exports = {
   getAllApartments,
   addNewApartment,
@@ -268,4 +299,5 @@ module.exports = {
   updateApartment,
   deleteApartment,
   getMyApartments,
+  getApartmentsByLocation,
 };
