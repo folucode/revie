@@ -121,7 +121,7 @@ const addNewApartment = (dbInstance) => async (request, response) => {
       });
     }
 
-    return response.send({
+    return response.status(201).send({
       message: 'success',
       data: result.rows[0],
     });
