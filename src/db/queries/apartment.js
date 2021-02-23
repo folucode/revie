@@ -63,7 +63,7 @@ const getApartment = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(404).send({
+      return response.status(204).send({
         status: 'error',
         message: 'Apartment not found',
       });
@@ -261,6 +261,14 @@ const deleteApartment = (dbInstance) => async (request, response) => {
   }
 };
 
+/**
+ * @method getApartmentsByLocation
+ * @description Method to get all apartments that match a particular location
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
 const getApartmentsByLocation = (dbInstance) => async (request, response) => {
   try {
     const result = await dbInstance.query(

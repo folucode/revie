@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const user = require('./routes/user');
 const apartment = require('./routes/apartment');
+const reviews = require('./routes/reviews');
 
 const app = express();
 
@@ -21,5 +22,6 @@ app.use(
 
 app.use(user);
 app.use(apartment);
+app.use(reviews);
 
 module.exports = app;
