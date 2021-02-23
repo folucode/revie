@@ -8,6 +8,7 @@ const {
   deleteApartment,
   getMyApartments,
   getApartmentsByLocation,
+  getApartmentsByUser,
 } = require('../db/queries/apartment');
 const { verifyToken } = require('../middlewares/verifyToken');
 
@@ -22,6 +23,8 @@ router.get('/apartments/:id([0-9]{1,10})', verifyToken, getApartment(pool));
 router.get('/apartments/location/:location', verifyToken, getApartmentsByLocation(pool));
 
 router.get('/apartments/me', verifyToken, getMyApartments(pool));
+
+router.get('/apartments/user/:id([0-9]{1,10})', verifyToken, getApartmentsByUser(pool));
 
 router.patch('/apartments/:id/update', verifyToken, updateApartment(pool));
 

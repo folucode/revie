@@ -300,6 +300,46 @@ const getApartmentsByLocation = (dbInstance) => async (request, response) => {
   }
 };
 
+/**
+ * @method getMyApartmentsByUser
+ * @description Method to get an apartment by a user
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const getApartmentsByUser = (dbInstance) => async (request, response) => {
+  try {
+    const result = await dbInstance.query(
+      'SELECT apartments.id, owner_id, type, address, state, name AS owner FROM apartments INNER JOIN users ON users.id = apartments.owner_id WHERE apartments.owner_id = $1 ORDER BY id ASC',
+      [request.params.id],
+    );
+
+    if (result.rows < 1) {
+      return response.status(404).send({
+        status: 'error',
+        message: 'This user has no apartments.',
+      });
+    }
+
+    return response.status(200).json({
+      message: 'Success',
+      data: result.rows,
+    });
+  } catch (error) {
+    if (error) {
+      const { message, stack, code } = error;
+
+      return response.status(500).send({
+        status: 'error',
+        message,
+        code,
+        data: stack,
+      });
+    }
+  }
+};
+
 module.exports = {
   getAllApartments,
   addNewApartment,
@@ -308,4 +348,5 @@ module.exports = {
   deleteApartment,
   getMyApartments,
   getApartmentsByLocation,
+  getApartmentsByUser,
 };
