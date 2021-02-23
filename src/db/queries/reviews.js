@@ -101,7 +101,50 @@ const addNewReview = (dbInstance) => async (request, response) => {
   }
 };
 
+/**
+ * @method deleteReview
+ * @description Method to delete a review
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const deleteReview = (dbInstance) => async (request, response) => {
+  const { params } = request;
+
+  try {
+    const result = await dbInstance.query(
+      'DELETE FROM reviews WHERE id = $1 RETURNING *',
+      [params.id],
+    );
+
+    if (result.rows < 1) {
+      return response.status(500).send({
+        status: 'error',
+        message: "Couldn't find review",
+      });
+    }
+
+    return response.status(201).send({
+      message: 'review deleted',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    if (error) {
+      const { message, stack, code } = error;
+
+      return response.status(500).send({
+        status: 'error',
+        message,
+        code,
+        data: stack,
+      });
+    }
+  }
+};
+
 module.exports = {
   getAllReviewsForApartment,
   addNewReview,
+  deleteReview,
 };
