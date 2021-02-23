@@ -110,12 +110,12 @@ const addNewReview = (dbInstance) => async (request, response) => {
  * @returns {object} - Response object
  */
 const deleteReview = (dbInstance) => async (request, response) => {
-  const { params } = request;
+  const { params, userId } = request;
 
   try {
     const result = await dbInstance.query(
-      'DELETE FROM reviews WHERE id = $1 RETURNING *',
-      [params.id],
+      'DELETE FROM reviews WHERE id = $1 AND user_id=$2 RETURNING *',
+      [params.id, userId],
     );
 
     if (result.rows < 1) {
