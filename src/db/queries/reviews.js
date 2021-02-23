@@ -14,7 +14,7 @@ const getAllReviewsForApartment = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(204).send({
+      return response.status(404).send({
         status: 'error',
         message: 'There are no reviews for this apartment yet.',
       });

@@ -21,7 +21,7 @@ const getAllApartments = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(204).json({
+      return response.status(404).json({
         status: 'success',
         message: 'There are no apartments yet.',
       });
@@ -63,7 +63,7 @@ const getApartment = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(204).send({
+      return response.status(404).send({
         status: 'error',
         message: 'Apartment not found',
       });
@@ -146,7 +146,7 @@ const getMyApartments = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(204).send({
+      return response.status(404).send({
         status: 'success',
         message: 'You have no apartments',
       });
@@ -276,7 +276,7 @@ const getApartmentsByLocation = (dbInstance) => async (request, response) => {
     );
 
     if (result.rows < 1) {
-      return response.status(204).json({
+      return response.status(404).json({
         status: 'success',
         message: 'There are no apartments yet.',
       });
