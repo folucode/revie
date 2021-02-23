@@ -1,3 +1,11 @@
+/**
+ * @method getAllReviewsForApartment
+ * @description Method to get all the reviews for a particular apartment
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
 const getAllReviewsForApartment = (dbInstance) => async (request, response) => {
   try {
     const result = await dbInstance.query(
@@ -51,6 +59,49 @@ const getAllReviewsForApartment = (dbInstance) => async (request, response) => {
   }
 };
 
+/**
+ * @method addNewReview
+ * @description Method to add a new review
+ * @param {object} dbInstance - The database instance
+ * @param {object} request - The request object
+ * @param {object} response - The response object
+ * @returns {object} - Response object
+ */
+const addNewReview = (dbInstance) => async (request, response) => {
+  const { body, params, userId } = request;
+
+  try {
+    const result = await dbInstance.query(
+      'INSERT INTO reviews (user_id, apartment_id, body) VALUES($1, $2, $3) RETURNING *',
+      [userId, params.id, body.body],
+    );
+
+    if (result.rows < 1) {
+      return response.status(500).send({
+        status: 'error',
+        message: "Couldn't add review",
+      });
+    }
+
+    return response.status(201).send({
+      message: 'success',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    if (error) {
+      const { message, stack, code } = error;
+
+      return response.status(500).send({
+        status: 'error',
+        message,
+        code,
+        data: stack,
+      });
+    }
+  }
+};
+
 module.exports = {
   getAllReviewsForApartment,
+  addNewReview,
 };
