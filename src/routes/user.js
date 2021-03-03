@@ -31,7 +31,10 @@ router.post('/logout', verifyToken, (request, response) => {
       const parsedData = JSON.parse(data);
       parsedData[userId].push(token);
       redisClient.setex(userId, 3600, JSON.stringify(parsedData));
-      return;
+      return response.send({
+        status: 'success',
+        message: 'Logout successful',
+      });
     }
 
     const blacklistData = {
