@@ -15,8 +15,8 @@ module.exports = (request, response, next) => {
           message: 'You have to login!',
         });
       }
-
-      return next();
     }
+
+    return next();
   });
 };

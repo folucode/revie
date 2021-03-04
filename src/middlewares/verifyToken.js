@@ -22,7 +22,9 @@ const verifyToken = (request, response, next) => {
         message: error.message,
       });
     }
+
     request.userId = decoded.id;
+    request.tokenExp = decoded.exp;
     request.token = token;
     next();
   });

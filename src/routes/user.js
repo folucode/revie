@@ -10,6 +10,7 @@ const {
 } = require('../db/queries/user');
 const { checkDuplicateUser } = require('../middlewares/checkDuplicateUser');
 const { verifyToken } = require('../middlewares/verifyToken');
+const checkBlacklist = require('../middlewares/checkBlacklist');
 
 const router = new express.Router();
 
@@ -20,17 +21,17 @@ router.post('/register', checkDuplicateUser, registerUser(pool));
 router.post('/login', loginUser(pool));
 
 router.post('/logout', verifyToken, (request, response) => {
-  const { userId, token } = request;
+  const { userId, token, tokenExp } = request;
 
   redisClient.get(userId, (error, data) => {
     if (error) {
-      response.send({ error });
+      return response.send({ error });
     }
 
     if (data !== null) {
       const parsedData = JSON.parse(data);
       parsedData[userId].push(token);
-      redisClient.setex(userId, 3600, JSON.stringify(parsedData));
+      redisClient.setex(userId, tokenExp, JSON.stringify(parsedData));
       return response.send({
         status: 'success',
         message: 'Logout successful',
@@ -41,12 +42,16 @@ router.post('/logout', verifyToken, (request, response) => {
       [userId]: [token],
     };
 
-    redisClient.setex(userId, 3600, JSON.stringify(blacklistData));
+    redisClient.setex(userId, tokenExp, JSON.stringify(blacklistData));
+    return response.send({
+      status: 'success',
+      message: 'Logout successful',
+    });
   });
 });
 
-router.post('/account/update', verifyToken, updateProfile(pool));
+router.post('/account/update', verifyToken, checkBlacklist, updateProfile(pool));
 
-router.get('/me', verifyToken, getUserProfile(pool));
+router.get('/me', verifyToken, checkBlacklist, getUserProfile(pool));
 
 module.exports = router;

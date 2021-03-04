@@ -56,7 +56,9 @@ const registerUser = (dbInstance) => async (request, response) => {
     }
 
     const { rows } = result;
-    const token = jwt.sign({ id: rows[0].id.toString() }, config.secret);
+    const token = jwt.sign({ id: rows[0].id.toString() }, config.secret, {
+      expiresIn: 86400, // 24 hours
+    });
 
     return response.status(201).send({
       message: 'User successfully registered',
