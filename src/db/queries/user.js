@@ -124,7 +124,7 @@ const loginUser = (dbInstance) => async (request, response) => {
     }
 
     const token = jwt.sign({ id: result.rows[0].id }, config.secret, {
-      expiresIn: 86400, // 24 hours
+      expiresIn: 100, // 24 hours
     });
 
     const { id, name } = result.rows[0];

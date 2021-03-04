@@ -23,34 +23,14 @@ router.post('/login', loginUser(pool));
 router.post('/logout', verifyToken, (request, response) => {
   const { userId, token, tokenExp } = request;
 
-  redisClient.get(userId, (error, data) => {
-    if (error) {
-      return response.send({ error });
-    }
-
-    if (data !== null) {
-      const parsedData = JSON.parse(data);
-      parsedData[userId].push(token);
-      redisClient.setex(userId, tokenExp, JSON.stringify(parsedData));
-      return response.send({
-        status: 'success',
-        message: 'Logout successful',
-      });
-    }
-
-    const blacklistData = {
-      [userId]: [token],
-    };
-
-    redisClient.setex(userId, tokenExp, JSON.stringify(blacklistData));
-    return response.send({
-      status: 'success',
-      message: 'Logout successful',
-    });
+  redisClient.setex(`blacklist_${token}`, tokenExp, userId);
+  return response.send({
+    status: 'success',
+    message: 'Logout successful',
   });
 });
 
-router.post('/account/update', verifyToken, checkBlacklist, updateProfile(pool));
+router.post('/account/update', checkBlacklist, verifyToken, updateProfile(pool));
 
 router.get('/me', verifyToken, checkBlacklist, getUserProfile(pool));
 
